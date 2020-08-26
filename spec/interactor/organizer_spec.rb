@@ -69,5 +69,57 @@ module Interactor
         instance.call
       end
     end
+
+    describe "#call" do
+      def build_organizer(options = {}, &block)
+        organizer = Class.new.send(:include, Interactor::Organizer).send(:requires, :something_awesome)
+        organizer.organize(options[:organize]) if options[:organize]
+        organizer.class_eval(&block) if block
+        organizer
+      end
+
+
+      let!(:a_rainbow) { double(:awesome_thing, rainbow?: true, unicorn?: false) }
+      let(:interactor2) { double(:interactor2) }
+      let(:interactor3) { double(:interactor3) }
+      let(:context) { double(:context) }
+      # let(:organizer) do
+      #   Class.new do
+          
+      #     include Interactor::Organizer
+
+      #     requires :something_awesome
+
+      #     organize(
+      #       { interactor: 'bla', condition: something_awesome }, 
+      #       { interactor: 'tuk', condition: something_awesome })
+
+      #     def self.something_awesome
+      #       true
+      #     end
+
+      #     def something_awesome
+      #       true
+      #     end
+      #   end
+      # end
+      let(:organizer) { build_organizer(organize: [
+        { interactor: interactor2, condition: something_awesome.rainbow? }, 
+        { interactor: interactor3, condition: something_awesome.unicorn? }]) }
+
+      subject { organizer.call(something_awesome: a_rainbow) }
+
+      before do
+        allow(subject).to receive(:context) { context }
+      end
+
+      it 'calls only interactor2 and without errors' do
+        # expect(interactor2).to receive(:call!)
+        # expect(interactor3).not_to receive(:call!)
+        expect { subject }.to_not raise_error
+
+        subject
+      end
+    end
   end
 end

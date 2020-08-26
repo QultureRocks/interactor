@@ -1,3 +1,5 @@
+require 'pry'
+
 module Interactor
   # Public: Interactor::Organizer methods. Because Interactor::Organizer is a
   # module, custom Interactor::Organizer classes should include
@@ -70,6 +72,7 @@ module Interactor
       #
       # Returns nothing.
       def organize(*interactors)
+        binding.pry
         @organized = interactors.flatten.map do |interactor| 
           interactor.is_a?(Hash) ? interactor : { interactor: interactor, condition: true }
         end
