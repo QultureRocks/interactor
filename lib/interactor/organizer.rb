@@ -1,5 +1,3 @@
-require 'pry'
-
 module Interactor
   # Public: Interactor::Organizer methods. Because Interactor::Organizer is a
   # module, custom Interactor::Organizer classes should include
@@ -7,7 +5,7 @@ module Interactor
   #
   # You can also pass the interactos as a hash that allows you to define a condition to decide if the 
   # interactor will be executed or not. The hash must have the following format: 
-  #   { interactor: InteractorOne, condition: false }
+  #   { interactor: InteractorOne, condition: -> { false } }
   # 
   # Examples
   #
@@ -20,13 +18,13 @@ module Interactor
   #   class MyOrganizer
   #     include Interactor::Organizer
   #
-  #     organizer InteractorOne, { interactor: InteractorTwo, condition: true }
+  #     organizer InteractorOne, { interactor: InteractorTwo, condition: -> { true } }
   #   end
   #
   #   class MyOrganizer
   #     include Interactor::Organizer
   #
-  #     organizer { interactor: InteractorOne, condition: false }, { interactor: InteractorTwo, condition: true }
+  #     organizer { interactor: InteractorOne, condition: -> { false } }, { interactor: InteractorTwo, condition: -> { true } }
   #   end
   #
   #
@@ -67,14 +65,13 @@ module Interactor
       #   class MyThirdOrganizer
       #     include Interactor::Organizer
       #
-      #     organizer InteractorOne, { interactor: InteractorTwo, condition: true }
+      #     organizer InteractorOne, { interactor: InteractorTwo, condition: -> { true } }
       #   end
       #
       # Returns nothing.
       def organize(*interactors)
-        binding.pry
         @organized = interactors.flatten.map do |interactor| 
-          interactor.is_a?(Hash) ? interactor : { interactor: interactor, condition: true }
+          interactor.is_a?(Hash) ? interactor : { interactor: interactor, condition: -> { true } }
         end
       end
 
@@ -89,7 +86,7 @@ module Interactor
       #   end
       #
       #   MyOrganizer.organized
-      #   # => [{ interactor: InteractorOne, condition: true }, {interactor: InteractorTwo, condition: true }]
+      #   # => [{ interactor: InteractorOne, condition: -> { true } }, {interactor: InteractorTwo, condition: -> { true } }]
       #
       # Returns an Array of Interactor classes or an empty Array.
       def organized
@@ -107,7 +104,7 @@ module Interactor
       # Returns nothing.
       def call
         self.class.organized.each do |interactor_hash|
-          interactor_hash[:interactor].call!(context) if interactor_hash[:condition]
+          interactor_hash[:interactor].call!(context) if instance_exec(&interactor_hash[:condition])
         end
       end
     end
