@@ -313,6 +313,52 @@ describe "Integration" do
     end
   end
 
+  context "when it has a condition to not execute" do
+    let!(:a_rainbow) { double(:awesome_thing, rainbow?: true, unicorn?: false) }
+    let(:context) { Interactor::Context.new(steps: [], something_awesome: a_rainbow) }
+    let(:organizer) {
+      build_organizer(organize: [ 
+        { interactor: organizer2, condition: -> { false } },
+        { interactor: interactor3, condition: -> { something_awesome.rainbow? } },
+        organizer4,
+        { interactor: interactor5, condition: -> { something_awesome.unicorn? } }
+      ]) do
+        requires :something_awesome
+
+        around do |interactor|
+          context.steps << :around_before
+          interactor.call
+          context.steps << :around_after
+        end
+  
+        before do
+          context.steps << :before
+        end
+  
+        after do
+          context.steps << :after
+        end
+      end
+    }
+
+    it "calls and runs hooks in the proper sequence except organizer2 and interactor5" do
+      expect {
+        organizer.call(context)
+      }.to change {
+        context.steps
+      }.from([]).to([
+        :around_before, :before,
+        :around_before3, :before3, :call3, :after3, :around_after3,
+        :around_before4, :before4,
+        :around_before4a, :before4a, :call4a, :after4a, :around_after4a,
+        :around_before4b, :before4b, :call4b, :after4b, :around_after4b,
+        :around_before4c, :before4c, :call4c, :after4c, :around_after4c,
+        :after4, :around_after4,
+        :after, :around_after,
+      ])
+    end
+  end
+
   context "when an around hook fails early" do
     let(:organizer) {
       build_organizer(organize: [organizer2, interactor3, organizer4, interactor5]) do
