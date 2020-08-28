@@ -76,7 +76,7 @@ module Interactor
         expect(interactor2).to receive(:call!).once.with(context).ordered
         expect(interactor3).to receive(:call!).once.with(context).ordered
         expect(interactor4).to receive(:call!).once.with(context).ordered
-        expect(interactor4).not_to receive(:call!)
+        expect(interactor5).not_to receive(:call!)
 
         instance.call
       end
