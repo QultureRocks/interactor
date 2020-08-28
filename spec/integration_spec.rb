@@ -341,7 +341,7 @@ describe "Integration" do
       end
     }
 
-    it "calls and runs hooks in the proper sequence except organizer2 the interactor5" do
+    it "calls and runs hooks in the proper sequence except organizer2 and interactor5" do
       expect {
         organizer.call(context)
       }.to change {
